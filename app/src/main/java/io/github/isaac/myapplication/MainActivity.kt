@@ -1,0 +1,78 @@
+package io.github.isaac.myapplication
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import io.github.isaac.myapplication.ui.components.Navigation
+import io.github.isaac.myapplication.ui.configuracion.SettingsScreen
+import io.github.isaac.myapplication.ui.map.MapLibreScreen
+import io.github.isaac.myapplication.ui.map.MapViewModel
+import io.github.isaac.myapplication.ui.marcadores.MarkersScreen
+import io.github.isaac.myapplication.ui.theme.MyApplicationTheme
+import org.maplibre.android.MapLibre
+
+// ... otros imports
+import androidx.navigation.compose.currentBackStackEntryAsState
+import io.github.isaac.myapplication.ui.components.LocationFAB
+
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        MapLibre.getInstance(this)
+
+        setContent {
+            MyApplicationTheme {
+                val navController = rememberNavController()
+                val viewModel: MapViewModel = viewModel()
+
+                // Observamos la ruta actual
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = { Navigation(navController) },
+                    // El FAB solo aparece en la ruta "mapa"
+                    floatingActionButton = {
+                        if (currentRoute == "mapa") {
+                            LocationFAB(viewModel = viewModel)
+                        }
+                    }
+                ) { innerPadding ->
+                    NavHost(
+                        navController = navController,
+                        startDestination = "mapa",
+                        modifier = Modifier.padding(innerPadding)
+                    ) {
+                        composable("mapa") {
+                            MapLibreScreen(viewModel = viewModel)
+                        }
+
+                        composable("marcadores") {
+                            MarkersScreen(viewModel = viewModel) {
+                                navController.navigate("mapa")
+                            }
+                        }
+
+                        composable("settings") {
+                            SettingsScreen(viewModel = viewModel) {
+                                navController.popBackStack()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
