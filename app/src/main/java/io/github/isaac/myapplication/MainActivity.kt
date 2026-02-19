@@ -18,12 +18,11 @@ import io.github.isaac.myapplication.ui.configuracion.SettingsScreen
 import io.github.isaac.myapplication.ui.map.MapLibreScreen
 import io.github.isaac.myapplication.ui.map.MapViewModel
 import io.github.isaac.myapplication.ui.marcadores.MarkersScreen
+import io.github.isaac.myapplication.ui.rutas.RoutesScreen
 import io.github.isaac.myapplication.ui.theme.MyApplicationTheme
 import org.maplibre.android.MapLibre
 
 // ... otros imports
-import androidx.navigation.compose.currentBackStackEntryAsState
-import io.github.isaac.myapplication.ui.components.LocationFAB
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,19 +35,9 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val viewModel: MapViewModel = viewModel()
 
-                // Observamos la ruta actual
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = navBackStackEntry?.destination?.route
-
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = { Navigation(navController) },
-                    // El FAB solo aparece en la ruta "mapa"
-                    floatingActionButton = {
-                        if (currentRoute == "mapa") {
-                            LocationFAB(viewModel = viewModel)
-                        }
-                    }
                 ) { innerPadding ->
                     NavHost(
                         navController = navController,
@@ -57,6 +46,12 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("mapa") {
                             MapLibreScreen(viewModel = viewModel)
+                        }
+
+                        composable("rutas") {
+                            RoutesScreen(viewModel = viewModel) {
+                                navController.navigate("mapa")
+                            }
                         }
 
                         composable("marcadores") {

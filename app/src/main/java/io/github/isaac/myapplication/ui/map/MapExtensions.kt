@@ -1,5 +1,6 @@
 package io.github.isaac.myapplication.ui.map
 
+import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.Lifecycle
@@ -7,6 +8,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.maplibre.android.maps.MapView
 
+@SuppressLint("MissingPermission")
 @Composable
 fun MapView.BindLifecycle(mapState: MapState) { // Pasamos el mapState
     val lifecycleOwner = LocalLifecycleOwner.current

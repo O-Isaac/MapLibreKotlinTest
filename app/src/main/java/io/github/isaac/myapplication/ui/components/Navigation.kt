@@ -1,8 +1,8 @@
 package io.github.isaac.myapplication.ui.components
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -26,10 +26,16 @@ fun Navigation(navController: NavHostController) {
             icon = { Icon(Icons.Default.Place, "") }
         )
         NavigationBarItem(
+            selected = currentRoute == "rutas",
+            onClick = { navController.navigate("rutas") },
+            label = { Text("Rutas") },
+            icon = { Icon(Icons.AutoMirrored.Filled.DirectionsWalk, null) }
+        )
+        NavigationBarItem(
             selected = currentRoute == "marcadores",
             onClick = { navController.navigate("marcadores") },
-            label = { Text("Lista") },
-            icon = { Icon(Icons.AutoMirrored.Filled.List, null) }
+            label = { Text("Marcadores") },
+            icon = { Icon(Icons.Default.Place, null) }
         )
         NavigationBarItem(
             selected = currentRoute == "settings",
