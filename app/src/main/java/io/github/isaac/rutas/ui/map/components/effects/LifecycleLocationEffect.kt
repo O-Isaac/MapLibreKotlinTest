@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import io.github.isaac.rutas.ui.map.utils.isHighAccuracyEnabled
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
+import io.github.isaac.rutas.utils.dbValueToMs
 
 /**
  * Observa los eventos ON_START y ON_STOP del ciclo de vida:
@@ -33,7 +34,7 @@ fun LifecycleLocationEffect(
             when (event) {
                 Lifecycle.Event.ON_START -> {
                     if (hasLocationPermission) {
-                        viewModel.startLiveLocationUpdates(recordingInterval)
+                        viewModel.startLiveLocationUpdates(dbValueToMs(recordingInterval))
                     }
 
                     if (!isHighAccuracyEnabled(context)) {

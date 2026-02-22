@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
+import io.github.isaac.rutas.utils.dbValueToMs
 
 /**
  * Arranca o para las actualizaciones de ubicación en tiempo real
@@ -17,7 +18,7 @@ fun LocationUpdatesEffect(hasLocationPermission: Boolean) {
 
     LaunchedEffect(hasLocationPermission, recordingInterval) {
         if (hasLocationPermission) {
-            viewModel.startLiveLocationUpdates(recordingInterval)
+            viewModel.startLiveLocationUpdates(dbValueToMs(recordingInterval))
         } else {
             viewModel.stopLiveLocationUpdates()
         }

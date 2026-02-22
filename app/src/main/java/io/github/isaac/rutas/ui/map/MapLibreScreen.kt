@@ -23,6 +23,7 @@ import io.github.isaac.rutas.ui.map.orchestrators.MapDialogsOrchestrator
 import io.github.isaac.rutas.ui.map.orchestrators.MapEffectsOrchestrator
 import io.github.isaac.rutas.ui.map.utils.hasLocationPermission
 import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
+import io.github.isaac.rutas.utils.dbValueToMs
 
 @Composable
 fun MapLibreScreen(modifier: Modifier = Modifier, viewModel: MapViewModel) {
@@ -55,7 +56,7 @@ private fun MapLibreContent(modifier: Modifier = Modifier) {
 
         if (hasLocationPermission) {
             mapState.onLocationPermissionGranted()
-            viewModel.startLiveLocationUpdates(recordingInterval)
+            viewModel.startLiveLocationUpdates(dbValueToMs(recordingInterval))
             viewModel.centerCameraOnUser()
             if (startRecordingRequested) viewModel.startRecording()
         }

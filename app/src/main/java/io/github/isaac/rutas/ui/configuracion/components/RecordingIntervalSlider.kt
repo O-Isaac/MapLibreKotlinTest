@@ -18,12 +18,20 @@ import androidx.compose.ui.unit.dp
 import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 
 /**
- * Slider para configurar el intervalo máximo de grabación de ruta.
- * Lee y escribe directamente en el ViewModel.
+ * Slider para configurar el intervalo de grabación de ruta.
+ *
+ * Convenio con la DB (sin migración de schema):
+ *   dbValue == 0  →  500 ms
+ *   dbValue 1..30 →  N segundos exactos
+ *
+ * El slider expone 31 posiciones (0..30):
+ *   posición 0  → "0.5 s"  → guarda 0 en DB
+ *   posición 1  → "1 s"    → guarda 1 en DB
+ *   posición 30 → "30 s"   → guarda 30 en DB
  */
 @Composable
 fun RecordingIntervalSlider(viewModel: MapViewModel) {
-    val recordingInterval by viewModel.recordingIntervalSec.collectAsState()
+    val dbValue by viewModel.recordingIntervalSec.collectAsState()
 
     Column(
         modifier = Modifier
@@ -36,24 +44,42 @@ fun RecordingIntervalSlider(viewModel: MapViewModel) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                "Intervalo máximo",
+                "Intervalo de grabación",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium
             )
-            StatusChip("$recordingInterval s")
+            StatusChip(dbValueToLabel(dbValue))
         }
         Text(
-            "Mínimo 0.5 s, máximo $recordingInterval s",
+            "Cada cuánto se guarda un punto de la ruta",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
         )
         Slider(
-            value = recordingInterval.toFloat(),
+            value = dbValue.toFloat(),
             onValueChange = { viewModel.updateRecordingInterval(it.toInt()) },
-            valueRange = 1f..30f,
-            steps = 28,
+            valueRange = 0f..30f,
+            steps = 29,  // 31 posiciones (0..30) → 29 pasos internos
             modifier = Modifier.padding(bottom = 4.dp)
         )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "0.5 s",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                "30 s",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
+
+private fun dbValueToLabel(dbValue: Int): String =
+    if (dbValue == 0) "0.5 s" else "$dbValue s"

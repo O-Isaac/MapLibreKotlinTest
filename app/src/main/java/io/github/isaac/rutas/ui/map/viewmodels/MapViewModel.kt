@@ -164,8 +164,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     private var lastRecordedLatLng: LatLng? = null
     private var recordingStartEpochMs: Long? = null
     private var liveLocationCallback: LocationCallback? = null
-    private var liveLocationIntervalSec: Int? = null
-    private val minLocationUpdateMs = 500L
+    private var liveLocationIntervalMs: Long? = null  // en ms para mayor precisión
+    private val minLocationUpdateMs = 200L  // mínimo físico razonable del GPS
 
     init {
         ensureDefaultSettings()
@@ -490,8 +490,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
             val routeName = result.name
                 ?.takeIf { it.isNotBlank() }
                 ?: displayName
-                ?.substringBeforeLast('.')
-                ?.takeIf { it.isNotBlank() }
+                    ?.substringBeforeLast('.')
+                    ?.takeIf { it.isNotBlank() }
                 ?: "Ruta importada"
 
             val routeId = System.currentTimeMillis()
@@ -545,23 +545,30 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         _selectedRoute.value = RouteDisplayState()
     }
 
-    fun updateRecordingInterval(seconds: Int) {
-        Log.i("MapViewModel", "updateRecordingInterval: $seconds    ")
+    // dbValue: 0 = 500ms, 1..30 = segundos exactos
+    fun updateRecordingInterval(dbValue: Int) {
+        Log.i("MapViewModel", "updateRecordingInterval: $dbValue (0=500ms, resto=segundos)")
         viewModelScope.launch {
             val selectedStyle = mapRepository.getMapStyle().first() ?: Constants.STYLES_MAP
 
             settingsRepository.saveSettings(
                 MapSettingsEntity(
                     selectedStyleUrl = selectedStyle,
-                    recordingIntervalSec = seconds
+                    recordingIntervalSec = dbValue
                 )
             )
 
+            // Si hay grabación activa, aplicar el nuevo intervalo inmediatamente
             if (liveLocationCallback != null) {
-                startLiveLocationUpdates(seconds)
+                val intervalMs = dbValueToMs(dbValue)
+                startLiveLocationUpdates(intervalMs)
             }
         }
     }
+
+    /** Convierte el valor guardado en DB a milisegundos reales */
+    private fun dbValueToMs(dbValue: Int): Long =
+        if (dbValue == 0) 500L else dbValue * 1000L
 
 
     fun deleteRuta(ruta: Ruta) {
@@ -608,23 +615,24 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun startRecordingLoop() {
-        startLiveLocationUpdates(recordingIntervalSec.value)
+        startLiveLocationUpdates(dbValueToMs(recordingIntervalSec.value))
     }
 
     @SuppressLint("MissingPermission")
-    fun startLiveLocationUpdates(intervalSeconds: Int) {
-        val intervalMs = intervalSeconds.coerceAtLeast(1) * 1000L
+    fun startLiveLocationUpdates(intervalMs: Long) {
+        val safeIntervalMs = intervalMs.coerceAtLeast(minLocationUpdateMs)
 
-        if (liveLocationCallback != null && liveLocationIntervalSec == intervalSeconds) {
+        // No reiniciamos si el intervalo es el mismo
+        if (liveLocationCallback != null && liveLocationIntervalMs == safeIntervalMs) {
             return
         }
 
         liveLocationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
 
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, intervalMs)
+        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, safeIntervalMs)
             .setMinUpdateIntervalMillis(minLocationUpdateMs)
-            .setMaxUpdateDelayMillis(intervalMs)
-            .setWaitForAccurateLocation(true)
+            .setMaxUpdateDelayMillis(safeIntervalMs)
+            .setWaitForAccurateLocation(false)  // true bloquea actualizaciones rápidas < 1s
             .build()
 
         val callback = object : LocationCallback() {
@@ -635,14 +643,14 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         liveLocationCallback = callback
-        liveLocationIntervalSec = intervalSeconds
+        liveLocationIntervalMs = safeIntervalMs
         fusedLocationClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
     }
 
     fun stopLiveLocationUpdates() {
         liveLocationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }
         liveLocationCallback = null
-        liveLocationIntervalSec = null
+        liveLocationIntervalMs = null
         mapState.toggleLocationUpdates(false)
     }
 

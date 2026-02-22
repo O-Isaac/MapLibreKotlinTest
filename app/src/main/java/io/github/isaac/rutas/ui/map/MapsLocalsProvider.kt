@@ -20,6 +20,7 @@ import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
 import io.github.isaac.rutas.ui.map.locals.LocalPermissionLauncher
 import io.github.isaac.rutas.ui.map.locals.LocalRequestHighAccuracy
 import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
+import io.github.isaac.rutas.utils.dbValueToMs
 
 
 /**
@@ -80,7 +81,7 @@ fun MapsLocalsProviders(viewModel: MapViewModel, content: @Composable () -> Unit
         val granted = permissions.values.any { it }
         if (granted) {
             viewModel.mapState.onLocationPermissionGranted()
-            viewModel.startLiveLocationUpdates(recordingInterval)
+            viewModel.startLiveLocationUpdates(dbValueToMs(recordingInterval))
             viewModel.centerCameraOnUser()
         }
     }
