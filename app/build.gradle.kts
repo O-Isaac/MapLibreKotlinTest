@@ -11,7 +11,7 @@ secrets {
 }
 
 android {
-    namespace = "io.github.isaac.myapplication"
+    namespace = "io.github.isaac.rutas"
     compileSdk = 36
 
     buildFeatures {
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.isaac.myapplication"
+        applicationId = "io.github.isaac.rutas"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
