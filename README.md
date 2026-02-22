@@ -42,14 +42,14 @@ La aplicación se construyó siguiendo el patrón **MVVM (Model-View-ViewModel)*
 
 ```mermaid
 graph TD
-    A[Usuario pulsa "Grabar"] --> B(UI / Jetpack Compose);
-    B --> C{MapViewModel};
-    C --> D[Lanza Coroutine en Dispatchers.IO];
-    D --> E(Room Database: Inserta nueva Ruta);
-    E --> F[Flow emite la lista actualizada de rutas];
-    F --> C;
-    C --> G(StateFlow actualiza el estado de la UI);
-    G --> B;
+    A[Usuario inicia grabación] --> B(Interfaz de Usuario)
+    B --> C{MapViewModel}
+    C --> D[Lanza Coroutine en Dispatchers.IO]
+    D --> E(Room Database)
+    E --> F[Flow emite cambios]
+    F --> C
+    C --> G(StateFlow de Estado)
+    G --> B
 ```
 
 ---
