@@ -1,6 +1,12 @@
-# Rutas MapLibre - Documentación del Proyecto
+# Rutas MapLibre
 
-Este documento detalla la arquitectura, decisiones de diseño y funcionalidades de la aplicación Rutas MapLibre, un tracker de rutas GPS para Android centrado en la privacidad y el rendimiento.
+MapLibre, un tracker de rutas GPS para Android centrado en la privacidad y el rendimiento.
+
+- Modulo: PMDM - Programación Multimedia y Dispositivos Móviles
+- Curso: 2025-2026
+- Centro: IES JUAN BOSCO
+- Alumno/s: Isaac Zaragoza Mendoza
+- Fecha: 22/02/2026
 
 ---
 
