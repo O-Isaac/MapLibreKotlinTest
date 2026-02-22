@@ -1,13 +1,14 @@
 package io.github.isaac.rutas.ui.rutas.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,10 +20,14 @@ import io.github.isaac.rutas.data.local.entities.Waypoint
 
 @Composable
 fun WaypointItem(waypoint: Waypoint) {
+    // Estado local para controlar si el sheet está visible
+    var showDetail by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 5.dp),
+            .clickable { showDetail = true }          // <-- toque abre el sheet
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -62,6 +67,13 @@ fun WaypointItem(waypoint: Waypoint) {
             )
         }
 
+        // Flecha indicando que es tappable
+        Icon(
+            imageVector = Icons.Outlined.ChevronRight,
+            contentDescription = "Ver detalles",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            modifier = Modifier.size(18.dp)
+        )
     }
 
     // Separador sutil
@@ -70,4 +82,12 @@ fun WaypointItem(waypoint: Waypoint) {
         thickness = 0.5.dp,
         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     )
+
+    // Sheet de detalles — se muestra condicionalmente
+    if (showDetail) {
+        WaypointDetailSheet(
+            waypoint = waypoint,
+            onDismiss = { showDetail = false }
+        )
+    }
 }
