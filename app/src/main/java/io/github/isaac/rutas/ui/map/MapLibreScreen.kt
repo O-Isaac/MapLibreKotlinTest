@@ -17,27 +17,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import io.github.isaac.rutas.ui.map.components.MapOverlays
 import io.github.isaac.rutas.ui.map.components.PermissionOverlay
-import io.github.isaac.rutas.ui.map.components.dialogs.AccuracyDialog
-import io.github.isaac.rutas.ui.map.components.dialogs.MarkerDialog
-import io.github.isaac.rutas.ui.map.components.dialogs.RouteNameDialog
-import io.github.isaac.rutas.ui.map.components.dialogs.WaypointCreationDialog
-import io.github.isaac.rutas.ui.map.components.dialogs.WaypointInfoDialog
-import io.github.isaac.rutas.ui.map.components.dialogs.WaypointListDialog
-import io.github.isaac.rutas.ui.map.components.effects.AccuracyCheckEffect
-import io.github.isaac.rutas.ui.map.components.effects.LifecycleLocationEffect
-import io.github.isaac.rutas.ui.map.components.effects.LocationUpdatesEffect
-import io.github.isaac.rutas.ui.map.components.effects.MapLifecycleEffect
-import io.github.isaac.rutas.ui.map.components.effects.MarkersEffect
-import io.github.isaac.rutas.ui.map.components.effects.NavigationEffect
-import io.github.isaac.rutas.ui.map.components.effects.RouteLineEffect
-import io.github.isaac.rutas.ui.map.components.effects.WaypointsMapEffect
 import io.github.isaac.rutas.ui.map.locals.LocalMapState
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
+import io.github.isaac.rutas.ui.map.orchestrators.MapDialogsOrchestrator
+import io.github.isaac.rutas.ui.map.orchestrators.MapEffectsOrchestrator
 
-/**
- * Punto de entrada de la pantalla del mapa.
- * Solo instala los LocalsProvider y delega todo lo demás.
- */
 @Composable
 fun MapLibreScreen(modifier: Modifier = Modifier, viewModel: MapViewModel) {
     MapsLocalsProviders(viewModel) {
@@ -45,14 +29,6 @@ fun MapLibreScreen(modifier: Modifier = Modifier, viewModel: MapViewModel) {
     }
 }
 
-/**
- * Contenido interno de la pantalla. Gestiona únicamente:
- *  - Estado local de UI (permisos, flags de diálogos, foto pendiente)
- *  - Launchers de sistema (permisos, cámara)
- *  - Orquestación de Effects, UI y Dialogs
- *
- * Sin lógica de negocio. Sin utilidades de sistema.
- */
 @Composable
 private fun MapLibreContent(modifier: Modifier = Modifier) {
     val viewModel = LocalMapViewModel.current
@@ -76,28 +52,22 @@ private fun MapLibreContent(modifier: Modifier = Modifier) {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         hasLocationPermission = permissions.values.any { it }
+
         if (hasLocationPermission) {
             mapState.onLocationPermissionGranted()
             viewModel.startLiveLocationUpdates(recordingInterval)
             viewModel.centerCameraOnUser()
             if (startRecordingRequested) viewModel.startRecording()
         }
+
         startRecordingRequested = false
     }
 
     // ── Effects ────────────────────────────────────────────────────────────────
-    // Crear un orquestador global de effectos
-    MapLifecycleEffect()
-    AccuracyCheckEffect(onAccuracyDialogRequired = { showAccuracyDialog = true })
-    LocationUpdatesEffect(hasLocationPermission)
-    LifecycleLocationEffect(
+    MapEffectsOrchestrator(
         hasLocationPermission = hasLocationPermission,
         onAccuracyDialogRequired = { showAccuracyDialog = true }
     )
-    NavigationEffect()
-    MarkersEffect()
-    RouteLineEffect()
-    WaypointsMapEffect()
 
     // ── UI ─────────────────────────────────────────────────────────────────────
     Box(modifier = modifier.fillMaxSize()) {
@@ -130,25 +100,14 @@ private fun MapLibreContent(modifier: Modifier = Modifier) {
     }
 
     // ── Dialogs ────────────────────────────────────────────────────────────────
-    MarkerDialog()
-    WaypointCreationDialog(
+    MapDialogsOrchestrator(
+        showAccuracyDialog = showAccuracyDialog,
+        showWaypointsDialog = showWaypointsDialog,
         pendingPhotoPath = pendingPhotoPath,
+        onAccuracyDialogDismiss = { showAccuracyDialog = false },
+        onWaypointsDialogDismiss = { showWaypointsDialog = false },
         onPhotoTaken = { path -> pendingPhotoPath = path },
         onPhotoClear = { pendingPhotoPath = null },
         onPhotoLaunch = { uri -> photoLauncher.launch(uri) }
     )
-    // Error falta parametros
-    RouteNameDialog()
-    // Error falta parametros
-    WaypointInfoDialog()
-
-    if (showWaypointsDialog) {
-        // Error falta parametros
-        WaypointListDialog(
-            onDismiss = { showWaypointsDialog = false }
-        )
-    }
-    if (showAccuracyDialog) {
-        AccuracyDialog(onDismiss = { showAccuracyDialog = false })
-    }
 }
