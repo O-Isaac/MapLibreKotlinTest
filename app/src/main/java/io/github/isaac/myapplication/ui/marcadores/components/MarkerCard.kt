@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.isaac.myapplication.data.model.MarkerData
-import io.github.isaac.myapplication.ui.components.DialogMarker
+import io.github.isaac.myapplication.ui.map.components.dialogs.DialogMarker
 
 @Composable
 fun MarkerCard(

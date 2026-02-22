@@ -1,9 +1,7 @@
-package io.github.isaac.myapplication.ui.components
+package io.github.isaac.myapplication.ui.map.components.dialogs
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
@@ -13,21 +11,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.github.isaac.myapplication.data.local.entities.Waypoint
+import io.github.isaac.myapplication.ui.map.locals.LocalMapViewModel
 
+/**
+ * Diálogo con la lista de waypoints de la ruta seleccionada.
+ * Lee el estado directamente del ViewModel.
+ * Solo recibe onDismiss porque el cierre es responsabilidad del estado local de la pantalla.
+ */
 @Composable
-fun WaypointListDialog(
-    waypoints: List<Waypoint>,
-    onDismiss: () -> Unit,
-    onSelect: (Waypoint) -> Unit
-) {
+fun WaypointListDialog(onDismiss: () -> Unit) {
+    val viewModel = LocalMapViewModel.current
+    val selectedRoute by viewModel.selectedRoute.collectAsState()
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Waypoints") },
         text = {
-            if (waypoints.isEmpty()) {
+            if (selectedRoute.waypoints.isEmpty()) {
                 Text(
                     "No hay waypoints en esta ruta.",
                     style = MaterialTheme.typography.bodyMedium
@@ -37,16 +41,17 @@ fun WaypointListDialog(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(waypoints) { waypoint ->
+                    items(selectedRoute.waypoints) { waypoint ->
                         ListItem(
                             headlineContent = { Text(waypoint.descripcion) },
                             supportingContent = {
                                 Text(if (waypoint.fotoPath == null) "Sin foto" else "Con foto")
                             },
                             trailingContent = {
-                                Button(onClick = { onSelect(waypoint) }) {
-                                    Text("Ver")
-                                }
+                                Button(onClick = {
+                                    onDismiss()
+                                    viewModel.openWaypoint(waypoint)
+                                }) { Text("Ver") }
                             }
                         )
                     }
@@ -54,9 +59,7 @@ fun WaypointListDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cerrar")
-            }
+            TextButton(onClick = onDismiss) { Text("Cerrar") }
         }
     )
 }

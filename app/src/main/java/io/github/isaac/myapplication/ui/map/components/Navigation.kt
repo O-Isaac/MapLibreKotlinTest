@@ -1,4 +1,4 @@
-package io.github.isaac.myapplication.ui.components
+package io.github.isaac.myapplication.ui.map.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place

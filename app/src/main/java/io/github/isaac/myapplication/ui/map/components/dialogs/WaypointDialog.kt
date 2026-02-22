@@ -1,4 +1,4 @@
-package io.github.isaac.myapplication.ui.components
+package io.github.isaac.myapplication.ui.map.components.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

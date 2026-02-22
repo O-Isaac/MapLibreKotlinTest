@@ -1,4 +1,4 @@
-package io.github.isaac.myapplication.ui.components
+package io.github.isaac.myapplication.ui.map.components.dialogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,39 +17,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RouteNameDialog(
-    defaultName: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit
+fun DialogMarker(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
 ) {
-    var name by remember(defaultName) { mutableStateOf(defaultName) }
+    // Estado interno para el nombre que el usuario escribe
+    var markerName by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Guardar ruta") },
+        title = {
+            Text(text = "Nuevo Marcador")
+        },
         text = {
             Column {
-                Text("Escribe un nombre para esta ruta:")
+                Text(text = "Escribe el nombre para esta ubicación:")
                 Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nombre") },
+                    value = markerName,
+                    onValueChange = { markerName = it },
+                    label = { Text("Nombre del lugar") },
+                    placeholder = { Text("Ej. Mi cafetería favorita") },
                     singleLine = true
                 )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name.ifBlank { defaultName }) },
-                enabled = name.isNotBlank()
+                onClick = {
+                    if (markerName.isNotBlank()) {
+                        onConfirm(markerName)
+                    }
+                },
+                enabled = markerName.isNotBlank() // Deshabilita si está vacío
             ) {
                 Text("Guardar")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Descartar")
+                Text("Cancelar")
             }
         }
     )

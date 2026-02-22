@@ -1,21 +1,10 @@
 package io.github.isaac.myapplication.ui.marcadores
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import io.github.isaac.myapplication.data.model.MarkerData
-import io.github.isaac.myapplication.ui.components.DialogMarker
 import io.github.isaac.myapplication.ui.map.MapViewModel
 import io.github.isaac.myapplication.ui.marcadores.components.MarkerEmpty
 import io.github.isaac.myapplication.ui.marcadores.components.MarkerList
