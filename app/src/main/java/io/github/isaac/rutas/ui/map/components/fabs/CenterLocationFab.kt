@@ -8,7 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
-import io.github.isaac.rutas.ui.map.isHighAccuracyEnabled
+import io.github.isaac.rutas.ui.map.utils.isHighAccuracyEnabled
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
 import io.github.isaac.rutas.ui.map.locals.LocalPermissionLauncher
 import io.github.isaac.rutas.ui.map.locals.LocalRequestHighAccuracy

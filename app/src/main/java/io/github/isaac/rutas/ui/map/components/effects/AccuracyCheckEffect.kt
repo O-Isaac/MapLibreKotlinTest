@@ -3,7 +3,7 @@ package io.github.isaac.rutas.ui.map.components.effects
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import io.github.isaac.rutas.ui.map.isHighAccuracyEnabled
+import io.github.isaac.rutas.ui.map.utils.isHighAccuracyEnabled
 
 /**
  * Al arrancar la pantalla, comprueba si el GPS tiene alta precisión activada.

@@ -1,4 +1,4 @@
-package io.github.isaac.rutas.ui.map
+package io.github.isaac.rutas.ui.map.utils
 
 import android.Manifest
 import android.content.Context

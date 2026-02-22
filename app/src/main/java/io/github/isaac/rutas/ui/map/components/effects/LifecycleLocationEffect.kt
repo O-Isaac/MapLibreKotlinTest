@@ -8,7 +8,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import io.github.isaac.rutas.ui.map.isHighAccuracyEnabled
+import io.github.isaac.rutas.ui.map.utils.isHighAccuracyEnabled
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
 
 /**

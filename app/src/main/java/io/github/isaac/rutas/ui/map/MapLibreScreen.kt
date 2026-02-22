@@ -21,6 +21,7 @@ import io.github.isaac.rutas.ui.map.locals.LocalMapState
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
 import io.github.isaac.rutas.ui.map.orchestrators.MapDialogsOrchestrator
 import io.github.isaac.rutas.ui.map.orchestrators.MapEffectsOrchestrator
+import io.github.isaac.rutas.ui.map.utils.hasLocationPermission
 
 @Composable
 fun MapLibreScreen(modifier: Modifier = Modifier, viewModel: MapViewModel) {
@@ -36,14 +37,12 @@ private fun MapLibreContent(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val recordingInterval by viewModel.recordingIntervalSec.collectAsState()
 
-    // ── Estado local de UI ─────────────────────────────────────────────────────
     var hasLocationPermission by remember { mutableStateOf(hasLocationPermission(context)) }
     var showAccuracyDialog by remember { mutableStateOf(false) }
     var showWaypointsDialog by remember { mutableStateOf(false) }
     var pendingPhotoPath by remember { mutableStateOf<String?>(null) }
     var startRecordingRequested by remember { mutableStateOf(false) }
 
-    // ── Launchers ──────────────────────────────────────────────────────────────
     val photoLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.TakePicture()
     ) { success -> if (!success) pendingPhotoPath = null }
@@ -63,13 +62,11 @@ private fun MapLibreContent(modifier: Modifier = Modifier) {
         startRecordingRequested = false
     }
 
-    // ── Effects ────────────────────────────────────────────────────────────────
     MapEffectsOrchestrator(
         hasLocationPermission = hasLocationPermission,
         onAccuracyDialogRequired = { showAccuracyDialog = true }
     )
 
-    // ── UI ─────────────────────────────────────────────────────────────────────
     Box(modifier = modifier.fillMaxSize()) {
         AndroidView(
             factory = {
@@ -99,7 +96,6 @@ private fun MapLibreContent(modifier: Modifier = Modifier) {
         )
     }
 
-    // ── Dialogs ────────────────────────────────────────────────────────────────
     MapDialogsOrchestrator(
         showAccuracyDialog = showAccuracyDialog,
         showWaypointsDialog = showWaypointsDialog,
