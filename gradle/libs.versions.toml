@@ -19,6 +19,8 @@ androidxNavigation="2.9.7"
 materialIconsExtended="1.7.8"
 gradleSecrets="2.0.1"
 coilCompose="2.6.0"
+googleService="4.4.4"
+firebaseBom="34.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,7 @@ maplibre-anotation-plugin = { group = "org.maplibre.gl", name = "android-plugin-
 androidx-navigation = { group = "androidx.navigation", name="navigation-compose", version.ref="androidxNavigation" }
 material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref="materialIconsExtended" }
 coil-compose = { group="io.coil-kt", name="coil-compose", version.ref="coilCompose" }
+firebase-bom = { group="com.google.firebase", name="firebase-bom", version.ref="firebaseBom" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -53,3 +56,6 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 mapsplaform-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref="gradleSecrets" }
+google-services = { id="com.google.gms.google-services", version.ref="googleService"}
+
+

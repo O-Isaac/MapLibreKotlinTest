@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.mapsplaform.secrets)
+    alias(libs.plugins.google.services)
 }
 
 secrets {
@@ -69,6 +70,7 @@ dependencies {
     implementation(libs.playservices.location)
     implementation(libs.material.icons.extended)
     implementation(libs.coil.compose)
+    implementation(platform(libs.firebase.bom))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
