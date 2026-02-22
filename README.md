@@ -1,66 +1,118 @@
-# Rutas MapLibre
+# Rutas MapLibre - Documentación del Proyecto
 
-![Kotlin](https://img.shields.io/badge/Kotlin-1.9.23-7F52FF?style=for-the-badge&logo=kotlin)
-![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-2024.09-4285F4?style=for-the-badge&logo=jetpackcompose)
-![MVVM](https://img.shields.io/badge/Architecture-MVVM-orange?style=for-the-badge)
+Este documento detalla la arquitectura, decisiones de diseño y funcionalidades de la aplicación Rutas MapLibre, un tracker de rutas GPS para Android centrado en la privacidad y el rendimiento.
 
-Aplicación Android nativa de alto rendimiento para la grabación y gestión de rutas geográficas, diseñada con una arquitectura moderna y orientada a la privacidad del usuario.
+---
+
+## ¿Qué problema resuelve esta aplicación?
+
+Las aplicaciones de seguimiento de rutas más populares (Strava, WikiLoc, etc.) dependen de la nube, lo que significa que nuestros datos de localización se almacenan en servidores de terceros. Esta aplicación nace como una alternativa que prioriza la privacidad: **todas las rutas y datos se guardan exclusivamente en el dispositivo**.
+
+El objetivo es ofrecer una herramienta potente y fluida para entusiastas del senderismo, ciclismo o cualquier actividad al aire libre, sin obligarles a ceder el control sobre su información personal.
+
+---
 
 ## Funcionalidades Principales
 
-La aplicación ofrece un conjunto de herramientas robustas para el seguimiento de actividades al aire libre:
+- **Grabación de Rutas GPS:** Seguimiento en tiempo real con cálculo de distancia, duración y velocidad media.
+- **Waypoints con Fotos:** Posibilidad de añadir marcadores en el mapa durante una grabación, adjuntando una descripción y una fotografía.
+- **Gestión de Rutas Locales:** Todas las rutas grabadas se almacenan en una base de datos local para su consulta offline.
+- **Importación y Exportación GPX:** Carga rutas desde archivos `.gpx` y exporta tus propias grabaciones para compartirlas o visualizarlas en otros programas.
+- **Intervalo de Grabación Ajustable:** Permite al usuario configurar la frecuencia de muestreo del GPS (de 1 a 30 segundos) para encontrar el equilibrio perfecto entre precisión y consumo de batería.
 
-- **Grabación de Rutas en Tiempo Real:** Seguimiento GPS con cálculo de distancia, duración y velocidad media.
-- **Gestión Avanzada de Waypoints:** Creación de puntos de interés con descripciones y captura de fotografías, con posibilidad de edición post-grabación.
-- **Intervalo de Grabación Personalizable:** Ajuste de la frecuencia de captura de puntos (1-30s) para balancear precisión y consumo de batería.
-- **Importación y Exportación GPX:** Carga de rutas desde plataformas como WikiLoc y exportación de trayectos propios para interoperabilidad.
-- **Compartición de Rutas:** Integración nativa con el sistema de Android para enviar archivos GPX a otras aplicaciones o contactos.
+---
 
-## Decisiones de Diseño y Arquitectura
+## Capturas de Pantalla
 
-El proyecto se fundamenta en decisiones técnicas orientadas a la mantenibilidad, rendimiento y escalabilidad.
+| Pantalla Principal | Grabación en Curso | Detalle de Waypoint |
+| :---: | :---: | :---: |
+| ![Pantalla Principal](docs/menu.png) | ![Grabando](docs/grabando.png) | ![Waypoint](docs/waypoint.png) |
 
-- **Arquitectura MVVM:** Se implementó el patrón Model-View-ViewModel para separar la lógica de negocio de la interfaz de usuario. El `MapViewModel` orquesta las interacciones, gestionando el estado y la comunicación con la base de datos, mientras que la UI (Compose) simplemente reacciona a los cambios de estado.
+---
 
-- **UI Declarativa con Jetpack Compose:** La interfaz se construye con Jetpack Compose y Material 3, lo que permite un desarrollo rápido y un código de UI más limpio y predecible. El estado se gestiona mediante `StateFlow`, asegurando que la UI siempre refleje la fuente única de verdad.
+## Arquitectura y Decisiones Técnicas
 
-- **Persistencia Local con Room:** Se eligió Room por su abstracción sobre SQLite, que facilita la creación de una base de datos local robusta, con consultas verificadas en tiempo de compilación y un sistema de migración claro.
+La aplicación se construyó siguiendo el patrón **MVVM (Model-View-ViewModel)**, una decisión clave para separar la lógica de negocio de la interfaz de usuario y facilitar las pruebas y el mantenimiento.
 
-- **SDK de MapLibre:** Se optó por MapLibre por su naturaleza de código abierto y su alto rendimiento en el renderizado de mapas vectoriales, ofreciendo una alternativa potente a servicios de mapas privativos.
+- **`View` (Jetpack Compose):** La interfaz es 100% declarativa. Los componentes `Composable` no tienen lógica, simplemente observan un `StateFlow` del ViewModel y se "recomponen" cuando el estado cambia. Esto evita por completo la manipulación manual de vistas (como `TextView.setText()`), resultando en un código de UI más predecible.
 
-## Stack Tecnológico
+- **`ViewModel` (`MapViewModel.kt`):** Es el cerebro de la aplicación. Orquesta las acciones del usuario (ej. "iniciar grabación"), procesa los datos del GPS, actualiza la base de datos a través de coroutines y expone el estado actual a la UI. No sabe nada sobre Jetpack Compose, solo emite estados.
 
-- **Lenguaje:** Kotlin 1.9.23
-- **Interfaz de Usuario:** Jetpack Compose (BOM 2024.09.00), Material 3
-- **Arquitectura:** MVVM, StateFlow, Coroutines, ViewModel
-- **Navegación:** Navigation Compose
-- **Base de Datos:** Room 2.6.1
-- **Mapas:** MapLibre GL SDK 10.3.1
-- **Localización:** Google Play Services Location 21.2.0
+- **`Model` (Room DB):** La capa de datos está formada por la base de datos Room (`AppDatabase.kt`). En lugar de hacer consultas directas, los DAOs exponen `Flows`. Esto significa que en cuanto un dato cambia en la base de datos (ej. se añade un nuevo punto a una ruta), el `Flow` emite el cambio, que es recogido por el ViewModel y, finalmente, la UI se actualiza automáticamente. Es un flujo de datos totalmente reactivo.
 
-## Posibles Mejoras Futuras
+```mermaid
+graph TD
+    A[Usuario pulsa "Grabar"] --> B(UI / Jetpack Compose);
+    B --> C{MapViewModel};
+    C --> D[Lanza Coroutine en Dispatchers.IO];
+    D --> E(Room Database: Inserta nueva Ruta);
+    E --> F[Flow emite la lista actualizada de rutas];
+    F --> C;
+    C --> G(StateFlow actualiza el estado de la UI);
+    G --> B;
+```
 
-- **Clasificación por Actividad:** Añadir una entidad en la base de datos para etiquetar rutas (senderismo, ciclismo, etc.) y filtrar por ellas.
-- **Perfil de Altitud:** Integrar datos de elevación en los puntos de ruta para generar y visualizar gráficos de altitud.
-- **Mapas Offline:** Permitir la descarga de regiones de mapa para una navegación completa sin conexión.
-- **Sincronización en la Nube:** Ofrecer un respaldo opcional de las rutas en un servicio como Firebase.
+---
 
-## Guía de Instalación y Contribución
+## Desafíos Técnicos y Soluciones
 
-### Build Local
+1.  **El Problema: Integrar una Vista tradicional (MapLibre) en una UI declarativa (Compose)**
 
-1.  **Clonar:** `git clone https://github.com/isaac/rutas-maplibre.git`
-2.  **API Key:** Crea un archivo `secrets.properties` en la raíz del proyecto y añade tu clave de MapTiler:
-    ```properties
-    MAPTILER_API_KEY="TU_API_KEY"
+    -   **Descripción:** MapLibre es un SDK excelente, pero está basado en el sistema de Vistas de Android, no en Compose. No se puede usar directamente como un `Composable`.
+    -   **Solución:** La solución fue usar el `AndroidView`. Este `Composable` especial actúa como un puente, permitiendo "incrustar" una Vista de Android dentro de una jerarquía de Compose. La clave fue gestionar manualmente el ciclo de vida del `MapView` (`onCreate`, `onStart`, `onResume`, etc.) dentro de un `DisposableEffect`, que se encarga de limpiar todo cuando el `Composable` desaparece de la pantalla para evitar fugas de memoria.
+
+2.  **El Problema: La grabación de GPS se detenía en segundo plano**
+
+    -   **Descripción:** Android es muy agresivo a la hora de optimizar la batería y tiende a detener procesos que consumen recursos (como el GPS) cuando la aplicación no está en primer plano.
+    -   **Solución:** En lugar de solicitar una única actualización de la ubicación, implementé un `LocationCallback` que se registra con el `FusedLocationProviderClient`. Este callback se configura con una prioridad alta (`PRIORITY_HIGH_ACCURACY`) y un intervalo definido por el usuario. El ViewModel se encarga de iniciar y detener este callback, asegurando que el flujo de datos de localización sea constante mientras la grabación esté activa.
+
+---
+
+## Limitaciones y Problemas Conocidos
+
+- **Sin datos de Altitud:** La aplicación actualmente solo registra latitud y longitud. No procesa ni muestra datos de elevación, por lo que no se pueden generar perfiles de altitud de las rutas.
+- **Dependencia de Google Play Services:** La geolocalización se basa en el `FusedLocationProvider` de Google. En dispositivos sin los servicios de Google (como algunas tablets o dispositivos Huawei recientes), la funcionalidad de GPS no operará correctamente.
+- **Compatibilidad de GPX:** Aunque el parser de GPX es robusto, podría fallar al importar archivos con formatos XML muy específicos o no estándar que no fueron contemplados durante el desarrollo.
+
+---
+
+## Cómo Compilar y Ejecutar
+
+1.  **Clonar el Repositorio:**
+    ```bash
+    git clone https://github.com/O-Isaac/rutas-maplibre.git
     ```
-3.  **Compilar:** Abre el proyecto en Android Studio y ejecuta `./gradlew assembleDebug`.
 
-### Contribuir
+2.  **Configurar la API Key:**
+    El proyecto necesita una clave de **MapTiler** para poder descargar los mapas. Debes crear un archivo `secrets.properties` en la raíz del proyecto y añadir tu clave.
+    
+    ```properties
+    # Este archivo NO debe subirse a Git
+    MAPTILER_API_KEY="TU_API_KEY_DE_MAPTILER_AQUI"
+    ```
 
-Las contribuciones son bienvenidas. Por favor, siga el flujo de trabajo estándar de Fork & Pull Request.
+3.  **Compilar con Gradle:**
+    Abre el proyecto en Android Studio (Iguana o superior) y ejecuta la tarea de Gradle desde la terminal:
+    ```bash
+    ./gradlew assembleDebug
+    ```
 
-1.  Haz un **Fork** del repositorio.
-2.  Crea una nueva **rama** para tu funcionalidad (`git checkout -b feature/MiMejora`).
-3.  Haz **commit** de tus cambios.
-4.  Envía un **Pull Request** para su revisión.
+---
+
+## Permisos Solicitados
+
+- `android.permission.INTERNET`: **¿Por qué?** Para descargar los datos del mapa (teselas) desde el servidor de MapTiler.
+- `android.permission.ACCESS_FINE_LOCATION`: **¿Por qué?** Es el permiso principal para acceder a las coordenadas precisas del GPS, fundamental para la grabación de rutas.
+- `android.permission.ACCESS_COARSE_LOCATION`: **¿Por qué?** Permite obtener una ubicación aproximada, que puede ser útil para centrar el mapa inicialmente sin necesidad de esperar al posicionamiento fino del GPS.
+- `android.permission.ACCESS_NETWORK_STATE`: **¿Por qué?** Para comprobar si el dispositivo tiene conexión a internet antes de intentar descargar los mapas.
+
+---
+
+### Autor
+
+- **Isaac Zaragoza Mendoza**
+- **GitHub:** [O-Isaac](https://github.com/O-Isaac)
+- **Email:** zaragozamendozaisaac@gmail.com
+
+*Última actualización: 22/02/2026*  
+*Estado del proyecto: Completado - Listo para producción*
