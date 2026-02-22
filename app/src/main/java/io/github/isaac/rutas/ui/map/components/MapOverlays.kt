@@ -44,7 +44,6 @@ fun BoxScope.MapOverlays(
         horizontalAlignment = Alignment.End
     ) {
         ShowWaypointsFab(onShowWaypointsDialog)
-        AddWaypointFab()
         RecordingControls(onStartRequest = onStartRecordingRequest)
         CenterLocationFab(hasLocationPermission)
     }

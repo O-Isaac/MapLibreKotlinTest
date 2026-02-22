@@ -33,7 +33,7 @@ import io.github.isaac.rutas.ui.configuracion.components.SettingItem
 import io.github.isaac.rutas.ui.configuracion.components.dialogs.AccuracyDialog
 import io.github.isaac.rutas.ui.configuracion.components.effects.HighAccuracyCheckEffect
 import io.github.isaac.rutas.ui.configuracion.utils.isHighAccuracyEnabled
-import io.github.isaac.rutas.ui.map.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

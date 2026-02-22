@@ -3,7 +3,7 @@ package io.github.isaac.rutas.ui.map.locals
 import androidx.activity.result.ActivityResultLauncher
 import androidx.compose.runtime.staticCompositionLocalOf
 import io.github.isaac.rutas.ui.map.MapState
-import io.github.isaac.rutas.ui.map.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 
 // staticCompositionLocalOf → para objetos que no cambian (ViewModel, MapState)
 // compositionLocalOf    → para valores que pueden cambiar y necesitan recomposición

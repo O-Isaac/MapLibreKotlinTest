@@ -1,4 +1,4 @@
-package io.github.isaac.rutas.ui.map.components
+package io.github.isaac.rutas.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place

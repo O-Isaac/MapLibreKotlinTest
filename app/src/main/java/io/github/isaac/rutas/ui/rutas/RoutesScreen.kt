@@ -14,14 +14,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import io.github.isaac.rutas.ui.map.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 import io.github.isaac.rutas.ui.rutas.components.EmptyRoutes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoutesScreen(
     viewModel: MapViewModel,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onSelect: (Long) -> Unit,
 ) {
     val routes by viewModel.routes.collectAsState()
     val actions = rememberRouteActions(viewModel)
@@ -45,7 +46,8 @@ fun RoutesScreen(
                 RouteList(
                     modifier = Modifier.padding(padding),
                     routes = routes,
-                    onNavigateBack = onNavigateBack
+                    onNavigateBack = onNavigateBack,
+                    onSelect = onSelect
                 )
             }
         }

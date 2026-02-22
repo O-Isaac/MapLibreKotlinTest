@@ -13,9 +13,11 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
-import io.github.isaac.rutas.BuildConfig
 import io.github.isaac.rutas.R
+import io.github.isaac.rutas.BuildConfig
 import io.github.isaac.rutas.data.model.MarkerData
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.WaypointDetails
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.camera.CameraUpdateFactory
 import org.maplibre.android.geometry.LatLng
@@ -90,6 +92,11 @@ class MapState(
             textAllowOverlap = true
             iconIgnorePlacement = true
             textIgnorePlacement = true
+        }
+
+        map.uiSettings.apply {
+            isLogoEnabled = false
+            isAttributionEnabled = false
         }
 
         loadMarkerFromAsset(
@@ -213,7 +220,7 @@ class MapState(
     }
 
     // Carga los assets de la aplicacion dentro de los estilos del mapa
-    private fun loadMarkerFromAsset(@DrawableRes resId: Int, assetId: String, style: Style) {
+    fun loadMarkerFromAsset(@DrawableRes resId: Int, assetId: String, style: Style) {
         val bitmap = decodeMarkerBitmap(resId) ?: return
         style.addImage(assetId, bitmap)
     }

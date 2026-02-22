@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.isaac.rutas.data.model.MarkerData
-import io.github.isaac.rutas.ui.map.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 
 @Composable
 fun MarkerList(

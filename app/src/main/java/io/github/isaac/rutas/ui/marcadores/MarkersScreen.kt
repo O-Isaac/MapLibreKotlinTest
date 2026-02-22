@@ -5,7 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import io.github.isaac.rutas.ui.map.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 import io.github.isaac.rutas.ui.marcadores.components.MarkerEmpty
 import io.github.isaac.rutas.ui.marcadores.components.MarkerList
 

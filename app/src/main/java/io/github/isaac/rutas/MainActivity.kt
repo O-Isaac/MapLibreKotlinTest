@@ -12,12 +12,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.isaac.rutas.ui.map.components.Navigation
+import io.github.isaac.rutas.ui.Navigation
 import io.github.isaac.rutas.ui.configuracion.SettingsScreen
 import io.github.isaac.rutas.ui.map.MapLibreScreen
-import io.github.isaac.rutas.ui.map.MapViewModel
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 import io.github.isaac.rutas.ui.marcadores.MarkersScreen
+import io.github.isaac.rutas.ui.rutas.RouteDetailScreen
 import io.github.isaac.rutas.ui.rutas.RoutesScreen
+import io.github.isaac.rutas.ui.rutas.viewmodels.RouteDetailViewModel
 import io.github.isaac.rutas.ui.theme.MyApplicationTheme
 import org.maplibre.android.MapLibre
 
@@ -33,6 +35,7 @@ class MainActivity : ComponentActivity() {
             MyApplicationTheme {
                 val navController = rememberNavController()
                 val viewModel: MapViewModel = viewModel()
+                val routesRouteDetailViewModel: RouteDetailViewModel = viewModel()
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -48,9 +51,11 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("rutas") {
-                            RoutesScreen(viewModel = viewModel) {
-                                navController.navigate("mapa")
-                            }
+                            RoutesScreen(
+                                viewModel = viewModel,
+                                onSelect = { rutaId -> navController.navigate("detalle_ruta/$rutaId") },
+                                onNavigateBack = { navController.navigate("mapa") }
+                            )
                         }
 
                         composable("marcadores") {
@@ -63,6 +68,15 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(viewModel = viewModel) {
                                 navController.popBackStack()
                             }
+                        }
+
+                        composable("detalle_ruta/{rutaId}") { backStackEntry ->
+                            val rutaId = backStackEntry.arguments?.getString("rutaId")?.toLongOrNull() ?: 0L
+                            RouteDetailScreen(
+                                rutaId = rutaId,
+                                viewModel = routesRouteDetailViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
                         }
                     }
                 }

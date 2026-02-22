@@ -19,6 +19,7 @@ import io.github.isaac.rutas.ui.map.locals.LocalMapState
 import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
 import io.github.isaac.rutas.ui.map.locals.LocalPermissionLauncher
 import io.github.isaac.rutas.ui.map.locals.LocalRequestHighAccuracy
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 
 
 /**

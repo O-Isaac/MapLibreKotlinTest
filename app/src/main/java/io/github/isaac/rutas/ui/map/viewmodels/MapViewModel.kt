@@ -1,4 +1,4 @@
-package io.github.isaac.rutas.ui.map
+package io.github.isaac.rutas.ui.map.viewmodels
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -12,6 +12,7 @@ import android.util.Xml
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.core.content.FileProvider
+import androidx.lifecycle.asLiveData
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -25,7 +26,12 @@ import io.github.isaac.rutas.data.local.entities.MarkerEntity
 import io.github.isaac.rutas.data.local.entities.PuntoRuta
 import io.github.isaac.rutas.data.local.entities.Ruta
 import io.github.isaac.rutas.data.local.entities.Waypoint
+import io.github.isaac.rutas.data.local.entities.toMarkerData
+import io.github.isaac.rutas.data.local.repositories.MapRepository
+import io.github.isaac.rutas.data.local.repositories.RutaRepository
+import io.github.isaac.rutas.data.local.repositories.SettingsRepository
 import io.github.isaac.rutas.data.model.MarkerData
+import io.github.isaac.rutas.ui.map.MapState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,6 +47,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import org.maplibre.android.geometry.LatLng
+import org.xmlpull.v1.XmlPullParser
 import java.io.File
 import java.io.InputStream
 import java.text.SimpleDateFormat
@@ -58,22 +65,18 @@ import kotlin.coroutines.resume
 
 class MapViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Acceso al DAO a través de la instancia de la base de datos en BaseApplication
-    private val dao = (application as BaseApplication).database.mapDao()
+    private val database = (application as BaseApplication).database
+    private val mapRepository = MapRepository(database.mapDao())
+    private val rutaRepository = RutaRepository(database.rutaDao())
+
+    private val settingsRepository = SettingsRepository(database.settingsDao());
+
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(application)
 
     // --- PERSISTENCIA: MARCADORES ---
     // Convertimos automáticamente los MarkerEntity (DB) a MarkerData (UI)
-    val markers: StateFlow<List<MarkerData>> = dao.getAllMarkers()
-        .map { entities ->
-            entities.map { entity ->
-                MarkerData(
-                    id = entity.id,
-                    name = entity.name,
-                    position = LatLng(entity.latitude, entity.longitude)
-                )
-            }
-        }
+    val markers: StateFlow<List<MarkerData>> = mapRepository.getAllMarkers()
+        .map { it.toMarkerData() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -142,14 +145,14 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         initialValue = emptyList()
     )
 
-    val routes: StateFlow<List<Ruta>> = dao.getAllRutas()
+    val routes: StateFlow<List<Ruta>> = rutaRepository.getAllRutas()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-    val recordingIntervalSec: StateFlow<Int> = dao.getRecordingInterval()
+    val recordingIntervalSec: StateFlow<Int> = settingsRepository.getRecordingInterval()
         .map { it ?: 10 }
         .stateIn(
             scope = viewModelScope,
@@ -173,7 +176,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     fun confirmMarker(name: String) {
         _pendingMarker.value?.let { latLng ->
             viewModelScope.launch {
-                dao.upsertMarker(
+                mapRepository.upsertMarker(
                     MarkerEntity(
                         id = UUID.randomUUID().toString(),
                         name = name,
@@ -188,7 +191,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteMarker(id: String) {
         viewModelScope.launch {
-            dao.deleteMarker(id)
+            mapRepository.deleteMarker(id)
         }
     }
 
@@ -198,15 +201,15 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             // Nota: Aquí necesitarías recuperar la entidad completa o tener un método UPDATE en el DAO
             // Por simplicidad, si tu DAO tiene @Query UPDATE, úsalo:
-            dao.updateMarkerName(id, newName)
+            mapRepository.updateMarkerName(id, newName)
         }
     }
 
     fun clearDatabase() {
         viewModelScope.launch {
-            dao.clearAllMarkers()
-            dao.clearMapSettings()
-            dao.clearRutas()
+            mapRepository.clearMarkers()
+            settingsRepository.clearSettings()
+            rutaRepository.clearRutas()
         }
     }
 
@@ -282,7 +285,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             val routeId = System.currentTimeMillis()
-            dao.upsertRuta(Ruta(id = routeId))
+            rutaRepository.upsertRuta(Ruta(id = routeId))
 
             _routeSaveRequest.value = null
             _selectedRoute.value = RouteDisplayState()
@@ -333,7 +336,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     fun cancelRouteSave() {
         val routeId = _routeSaveRequest.value?.routeId ?: return
         viewModelScope.launch {
-            dao.deleteRuta(routeId)
+            rutaRepository.deleteRuta(routeId)
             resetRecordingState()
         }
     }
@@ -347,7 +350,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
             val distanceMeters = current.distanceMeters
             val avgSpeed = calculateAverageSpeed(distanceMeters, durationMs)
 
-            dao.upsertRuta(
+            rutaRepository.upsertRuta(
                 Ruta(
                     id = routeId,
                     nombre = name,
@@ -403,7 +406,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                 descripcion = description,
                 fotoPath = photoPath
             )
-            dao.upsertWaypoint(waypoint)
+            rutaRepository.upsertWaypoint(waypoint)
             _recordingWaypoints.value = _recordingWaypoints.value + waypoint
             _pendingWaypointLocation.value = null
         }
@@ -411,9 +414,10 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
 
     fun selectRoute(routeId: Long) {
         viewModelScope.launch {
-            val route = dao.getRutaById(routeId) ?: return@launch
-            val points = dao.getPuntosByRuta(routeId)
-            val waypoints = dao.getWaypointsByRuta(routeId)
+            val route = rutaRepository.getRunta(routeId) ?: return@launch
+            val points = rutaRepository.getPuntosRutaOnce(routeId)
+            val waypoints = rutaRepository.getWaypointsRutaOnce(routeId)
+
             _selectedRoute.value = RouteDisplayState(route, points, waypoints)
             _recordingState.value = _recordingState.value.copy(isRecording = false, isPaused = false)
         }
@@ -425,17 +429,19 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
-            val route = dao.getRutaById(routeId)
+            val route = rutaRepository.getRunta(routeId)
             if (route == null) {
                 onError("Ruta no encontrada")
                 return@launch
             }
-            val points = dao.getPuntosByRuta(routeId)
+
+            val points = rutaRepository.getPuntosRutaOnce(routeId)
             if (points.isEmpty()) {
                 onError("La ruta no tiene puntos")
                 return@launch
             }
-            val waypoints = dao.getWaypointsByRuta(routeId)
+
+            val waypoints = rutaRepository.getWaypointsRutaOnce(routeId)
             val gpx = buildGpx(route, points, waypoints)
             val fileName = buildGpxFileName(route)
 
@@ -505,7 +511,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
             val durationMs = calculateDuration(pointsWithTime)
             val avgSpeed = calculateAverageSpeed(distanceMeters, durationMs)
 
-            dao.upsertRuta(
+            rutaRepository.upsertRuta(
                 Ruta(
                     id = routeId,
                     nombre = routeName,
@@ -515,11 +521,11 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                 )
             )
 
-            pointsWithTime.forEach { dao.upsertPuntoRuta(it) }
+            pointsWithTime.forEach { rutaRepository.upsertPunto(it) }
 
             val waypointBaseId = routeId + 100000
             result.waypoints.forEachIndexed { index, waypoint ->
-                dao.upsertWaypoint(
+                rutaRepository.upsertWaypoint(
                     Waypoint(
                         id = waypointBaseId + index,
                         rutaId = routeId,
@@ -542,9 +548,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
     fun updateRecordingInterval(seconds: Int) {
         Log.i("MapViewModel", "updateRecordingInterval: $seconds    ")
         viewModelScope.launch {
-            val selectedStyle = dao.getMapStyle().first() ?: Constants.STYLES_MAP
+            val selectedStyle = mapRepository.getMapStyle().first() ?: Constants.STYLES_MAP
 
-            dao.saveSettings(
+            settingsRepository.saveSettings(
                 MapSettingsEntity(
                     selectedStyleUrl = selectedStyle,
                     recordingIntervalSec = seconds
@@ -557,11 +563,25 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
+    fun deleteRuta(ruta: Ruta) {
+        viewModelScope.launch {
+            rutaRepository.deleteRuta(ruta.id)
+        }
+    }
+
+    fun deleteRuta(ruta: Long) {
+        viewModelScope.launch {
+            rutaRepository.deleteRuta(ruta)
+        }
+    }
+
     private fun ensureDefaultSettings() {
         viewModelScope.launch {
-            val currentStyle = dao.getMapStyle().first()
+            val currentStyle = mapRepository.getMapStyle().first()
+
             if (currentStyle == null) {
-                dao.saveSettings(
+                settingsRepository.saveSettings(
                     MapSettingsEntity(
                         selectedStyleUrl = Constants.STYLES_MAP,
                         recordingIntervalSec = 10
@@ -647,7 +667,8 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                 lat = latLng.latitude,
                 lng = latLng.longitude
             )
-            dao.upsertPuntoRuta(punto)
+
+            rutaRepository.upsertPunto(punto)
         }
 
         val newDistance = lastRecordedLatLng?.let { previous ->
@@ -834,9 +855,9 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
         var currentWptName: String? = null
         var currentWptDesc: String? = null
 
-        while (eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+        while (eventType != XmlPullParser.END_DOCUMENT) {
             when (eventType) {
-                org.xmlpull.v1.XmlPullParser.START_TAG -> {
+                XmlPullParser.START_TAG -> {
                     when (parser.name) {
                         "metadata" -> inMetadata = true
                         "trk" -> inTrk = true
@@ -873,7 +894,7 @@ class MapViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
                 }
-                org.xmlpull.v1.XmlPullParser.END_TAG -> {
+                XmlPullParser.END_TAG -> {
                     when (parser.name) {
                         "metadata" -> inMetadata = false
                         "trk" -> inTrk = false

@@ -2,6 +2,9 @@ package io.github.isaac.rutas.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import io.github.isaac.rutas.data.local.dao.MapDao
+import io.github.isaac.rutas.data.local.dao.RutaDao
+import io.github.isaac.rutas.data.local.dao.SettingsDao
 import io.github.isaac.rutas.data.local.entities.MapSettingsEntity
 import io.github.isaac.rutas.data.local.entities.MarkerEntity
 import io.github.isaac.rutas.data.local.entities.PuntoRuta
@@ -16,9 +19,12 @@ import io.github.isaac.rutas.data.local.entities.Waypoint
         PuntoRuta::class,
         Waypoint::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun mapDao(): MapDao
+    abstract fun rutaDao(): RutaDao
+    
+    abstract fun settingsDao(): SettingsDao
 }

@@ -22,6 +22,7 @@ import io.github.isaac.rutas.ui.map.locals.LocalMapViewModel
 import io.github.isaac.rutas.ui.map.orchestrators.MapDialogsOrchestrator
 import io.github.isaac.rutas.ui.map.orchestrators.MapEffectsOrchestrator
 import io.github.isaac.rutas.ui.map.utils.hasLocationPermission
+import io.github.isaac.rutas.ui.map.viewmodels.MapViewModel
 
 @Composable
 fun MapLibreScreen(modifier: Modifier = Modifier, viewModel: MapViewModel) {
