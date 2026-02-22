@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.navigation)
-    implementation(libs.nanihadesuka.lazyscrollbar)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

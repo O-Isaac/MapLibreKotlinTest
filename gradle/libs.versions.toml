@@ -13,6 +13,11 @@ locationService = "21.3.0"
 appCompat = "1.7.1"
 roomVersion="2.8.4"
 ksp = "2.0.21-1.0.25"
+mapLibreSdk="12.3.1"
+mapLibreAnotation="3.0.2"
+androidxNavigation="2.9.7"
+materialIconsExtended="1.7.8"
+gradleSecrets="2.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -37,15 +42,14 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 
 playservices-location = { group = "com.google.android.gms", name = "play-services-location", version.ref="locationService" }
 
-maplibre-gl = { group = "org.maplibre.gl", name = "android-sdk", version="12.3.1" }
-maplibre-anotation-plugin = { group = "org.maplibre.gl", name = "android-plugin-annotation-v9", version="3.0.2" }
-androidx-navigation = { group = "androidx.navigation", name="navigation-compose", version="2.9.7" }
-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version="1.7.8" }
-nanihadesuka-lazyscrollbar = { group = "com.github.nanihadesuka", name = "LazyColumnScrollbar", version="2.2.0" }
+maplibre-gl = { group = "org.maplibre.gl", name = "android-sdk", version.ref="mapLibreSdk" }
+maplibre-anotation-plugin = { group = "org.maplibre.gl", name = "android-plugin-annotation-v9", version.ref="mapLibreAnotation" }
+androidx-navigation = { group = "androidx.navigation", name="navigation-compose", version.ref="androidxNavigation" }
+material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref="materialIconsExtended" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-mapsplaform-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version="2.0.1" }
+mapsplaform-secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref="gradleSecrets" }
